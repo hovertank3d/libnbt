@@ -1,0 +1,3 @@
+this is a simple nbt parsing lib i wrote to practice file parsing.
+
+check example `example/main.c` and `include/nbt.h`
