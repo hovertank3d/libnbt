@@ -30,16 +30,19 @@ void tab(FILE *f, int level)
 void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
 {
     char *coma;
-    coma = nest_level?",":"";
+
+    coma = nest_level ? "," : "";
     tab(f, nest_level);
+
     if (tag->name && nest_level) {
         fprintf(f, "\"%s\": ", tag->name);
     }
+    
     switch (tag->type) {
     case TAG_Compound_ID:
         fprintf(f, "{\n");
         for (int i = 0; i < tag->payload.Compound.children_num; i++) {
-            nbt2json(f, tag->payload.Compound.children + i, nest_level+1);
+            nbt2json(f, tag->payload.Compound.children + i, nest_level + 1);
         }
         tab(f, nest_level);
         fprintf(f, "}%s\n", coma);
@@ -48,7 +51,7 @@ void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
     case TAG_List_ID:
         fprintf(f, "[\n");
         for (int i = 0; i < tag->payload.List.children_num; i++) {
-            nbt2json(f, tag->payload.List.children + i, nest_level+1);
+            nbt2json(f, tag->payload.List.children + i, nest_level + 1);
         }
         tab(f, nest_level);
         fprintf(f, "]%s\n", coma);
@@ -73,7 +76,7 @@ void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
     case TAG_Byte_Array_ID:
         fprintf(f, "[\n");
         for (int i = 0; i < tag->payload.Byte_Array.arr_len; i++) {
-            tab(f, nest_level+1);
+            tab(f, nest_level + 1);
             fprintf(f, "%d,\n", tag->payload.Byte_Array.arr[i]);
         }
         tab(f, nest_level);
@@ -82,7 +85,7 @@ void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
     case TAG_Int_Array_ID:
         fprintf(f, "[\n");
         for (int i = 0; i < tag->payload.Int_Array.arr_len; i++) {
-            tab(f, nest_level+1);
+            tab(f, nest_level + 1);
             fprintf(f, "%d,\n", tag->payload.Int_Array.arr[i]);
         }
         tab(f, nest_level);
@@ -91,7 +94,7 @@ void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
     case TAG_Long_Array_ID:
         fprintf(f, "[\n");
         for (int i = 0; i < tag->payload.Long_Array.arr_len; i++) {
-            tab(f, nest_level+1);
+            tab(f, nest_level + 1);
             fprintf(f, "%ld,\n", tag->payload.Long_Array.arr[i]);
         }
         tab(f, nest_level);
@@ -105,9 +108,9 @@ void nbt2json(FILE *f, NBT_Tag *tag, int nest_level)
 int main(int argc, char **argv)
 {
     NBT_Tag *root;
-    FILE *out_file;
+    FILE    *out_file;
     uint8_t *uncompressed;
-    size_t   size;
+    int      size;
     char    *in_file_path;
     char    *out_file_path;
     
@@ -118,20 +121,19 @@ int main(int argc, char **argv)
     in_file_path = argv[1];
     out_file_path = argv[2];
 
-    size = nbt_uncompress_file(in_file_path, &uncompressed);
-    if (size <= 0) {
+    uncompressed = nbt_uncompress_file(in_file_path, &size);
+    if (uncompressed == NULL) {
         FMT_ERR(1, "zlib error: %s", nbt_get_error());
     }
 
     root = nbt_parse_root(uncompressed, size);
     if (root == NULL) {
-        FMT_ERR(1, "error parsing nbt: %s", nbt_get_error());
+        FMT_ERR(1, "parsing nbt: %s", nbt_get_error());
     }
-    
     
     out_file = fopen(out_file_path, "w");
     if (out_file == NULL) {
-        FMT_ERR(1, "error reading file: %s", strerror(errno));
+        FMT_ERR(1, "reading file: %s", strerror(errno));
     }
     nbt2json(out_file, root, 0);
     fclose(out_file);

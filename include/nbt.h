@@ -66,35 +66,49 @@ typedef struct nbt_long_array_payload {
 } nbt_long_array_payload;
 
 typedef union nbt_payload{
-    int8_t Byte;
+    int8_t  Byte;
     int16_t Short;
     int32_t Int;
     int64_t Long;
-    float Float;
-    double Double;
-    char *String;
+    float   Float;
+    double  Double;
+    char   *String;
 
     nbt_byte_array_payload Byte_Array;
-    nbt_int_array_payload Int_Array;
+    nbt_int_array_payload  Int_Array;
     nbt_long_array_payload Long_Array;
-    nbt_list_payload List;
-    nbt_coumpound_payload Compound;
+    nbt_list_payload       List;
+    nbt_coumpound_payload  Compound;
 
 } nbt_payload;
 
 typedef struct NBT_Tag {
-    uint8_t type;
-    char *name;
+    uint8_t     type;
+    char       *name;
     nbt_payload payload;
 
 } NBT_Tag;
 
-int nbt_uncompress_file(char *file_path, uint8_t **dst);
 NBT_Tag *nbt_parse_root(uint8_t *data, int data_len);
 void nbt_free_tag(NBT_Tag *tag);
 int nbt_tag_set_name(NBT_Tag *tag, const char *name);
 
+NBT_Tag *nbt_create_list(const char *name, int32_t len, uint8_t type, const nbt_payload *children);
+NBT_Tag *nbt_create_compound(const char *name, int32_t len, const NBT_Tag *children);
+NBT_Tag *nbt_create_array(const char *name, const void *data, int size, int count);
+NBT_Tag *nbt_create_string(const char *name, const char *data);
+NBT_Tag *nbt_create_byte(const char *name, int8_t data);
+NBT_Tag *nbt_create_short(const char *name, int16_t data);
+NBT_Tag *nbt_create_int(const char *name, int32_t data);
+NBT_Tag *nbt_create_long(const char *name, int64_t data);
+NBT_Tag *nbt_create_float(const char *name, float data);
+NBT_Tag *nbt_create_double(const char *name, double data);
+
+int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag);
+
 uint8_t *nbt_dump_tree(NBT_Tag *tag, int *sz);
+int nbt_compress_file(const char *file_path, uint8_t *data, int size);
+uint8_t *nbt_uncompress_file(const char *file_path, int *size);
 
 const char *nbt_get_error();
 
