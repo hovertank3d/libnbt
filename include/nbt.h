@@ -106,6 +106,8 @@ NBT_Tag *nbt_create_double(const char *name, double data);
 
 int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag);
 
+NBT_Tag *nbt_child_by_name(NBT_Tag *tag, const char *name);
+
 uint8_t *nbt_dump_tree(NBT_Tag *tag, int *sz);
 int nbt_compress_file(const char *file_path, uint8_t *data, int size);
 uint8_t *nbt_uncompress_file(const char *file_path, int *size);

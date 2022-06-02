@@ -469,3 +469,23 @@ int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag)
     
     return 0;
 }
+
+NBT_Tag *nbt_child_by_name(NBT_Tag *tag, const char *name)
+{
+    nbt_coumpound_payload *p;
+
+    if (tag->type != TAG_Compound_ID) {
+        nbt_set_error("Incorrect tag type");
+        return NULL;
+    }
+
+    p = &tag->payload.Compound;
+
+    for (int i = 0; i < p->children_num; i++) {
+        if (!strcmp(p->children[i].name, name)) {
+            return p->children + i;
+        }
+    }
+
+    return NULL;
+}
