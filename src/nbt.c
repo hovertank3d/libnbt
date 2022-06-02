@@ -17,6 +17,7 @@
 #include "nbterr.h"
 
 #define BUFLEN 512
+#define CHUNK  64
 
 char *nbt_tag_names[] = {
     [TAG_Byte_ID]       = "TAG_Byte",
@@ -351,7 +352,7 @@ NBT_Tag *nbt_create_array(const char *name, const void *data, int size, int coun
         return NULL;
     }
 
-    arr = malloc(size*count);
+    arr = malloc(((size*count)/CHUNK + 1) * CHUNK);
     if (arr == NULL) {
         nbt_set_error("Out of memoty");
         return NULL;
@@ -435,25 +436,52 @@ NBT_Tag *nbt_create_double(const char *name, double data)
     return nbt_create_tag(name, TAG_Double_ID, payload);
 }
 
-int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag)
+static int arr_need_realloc(int size, int delta)
+{
+    if (size + delta >= (size / CHUNK + 1) * CHUNK) {
+        return ((size + delta) / CHUNK + 1) * CHUNK;
+    }
+    return 0;
+}
+
+void nbt_int_array_push(NBT_Tag *array, int32_t data)
+{
+    nbt_int_array_payload *p;
+    int alloc_size;
+
+    p = &array->payload.Int_Array;
+
+    alloc_size = arr_need_realloc(p->arr_len*4, 4);
+    if (alloc_size) {
+        p->arr = realloc(p->arr, alloc_size);
+    }
+    p->arr[p->arr_len] = data;
+    p->arr_len++;
+}
+
+NBT_Tag *nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag)
 {
     if (parent->type != TAG_Compound_ID && parent->type != TAG_List_ID) {
         nbt_set_error("%s can't have children", nbt_tag_names[parent->type]);
-        return 1;
+        return NULL;
     }
 
     if (parent->type == TAG_Compound_ID) {
-
         nbt_coumpound_payload *p = &parent->payload.Compound;
+        
         p->children_num++;
         p->children = realloc(p->children, p->children_num * sizeof(NBT_Tag));
-        p->children[p->children_num-1] = *tag;
-    } else if (parent->type == TAG_List_ID) {
-
+        p->children[p->children_num - 1] = *tag;
+        
+        free(tag);
+        return p->children + (p->children_num - 1);
+    
+    } else {
         nbt_list_payload *p = &parent->payload.List;
+        
         if (p->children_type != tag->type) {
             nbt_set_error("List have other type");
-            return 1;
+            return NULL;
         }
 
         if (tag->name) {
@@ -462,7 +490,10 @@ int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag)
 
         p->children_num++;
         p->children = realloc(p->children, p->children_num * sizeof(NBT_Tag));
-        p->children[p->children_num-1] = *tag;
+        p->children[p->children_num - 1] = *tag;
+        
+        free(tag);
+        return p->children + (p->children_num - 1);
     }
     
     free(tag);

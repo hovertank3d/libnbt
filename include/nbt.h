@@ -104,7 +104,8 @@ NBT_Tag *nbt_create_long(const char *name, int64_t data);
 NBT_Tag *nbt_create_float(const char *name, float data);
 NBT_Tag *nbt_create_double(const char *name, double data);
 
-int nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag);
+NBT_Tag *nbt_insert_tag(NBT_Tag *parent, NBT_Tag *tag);
+void nbt_int_array_push(NBT_Tag *array, int32_t data);
 
 NBT_Tag *nbt_child_by_name(NBT_Tag *tag, const char *name);
 
