@@ -289,7 +289,7 @@ NBT_Tag *nbt_create_tag(const char *name, uint8_t type, nbt_payload data)
         tag->name = NULL;
     }
 
-    tag->type = TAG_List_ID;
+    tag->type = type;
     tag->payload = data;
 
     return tag;
